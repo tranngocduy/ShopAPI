@@ -140,7 +140,7 @@ namespace ShopAPI.Controllers
             catch (Exception ex)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-            }                 
+            }
         }
 
         [HttpPost]
@@ -173,13 +173,22 @@ namespace ShopAPI.Controllers
         [HttpPost]
         [Route("image/upload")]
         public HttpResponseMessage Upload(int code)
-        { 
+        {
             int upLoadcount = 0;
             string sPath = System.Web.Hosting.HostingEnvironment.MapPath("/HinhAnh/");
             System.Web.HttpFileCollection files = System.Web.HttpContext.Current.Request.Files;
-            for (int i = 0; i < files.Count; i++)
+            int flag = 0;
+            if (files[files.Count -1].FileName.EndsWith(".png") || files[files.Count - 1].FileName.EndsWith(".jpeg ") || files[files.Count - 1].FileName.EndsWith(".jpg"))
             {
-                System.Web.HttpPostedFile file = files[i];
+                flag =0;
+            }
+            else
+            {
+                flag = 1;
+            }
+            if (flag < 1)
+            {
+                System.Web.HttpPostedFile file = files[files.Count - 1];
                 string fileName = new FileInfo(file.FileName).Name;
                 if (file.ContentLength > 0)
                 {
@@ -192,7 +201,7 @@ namespace ShopAPI.Controllers
                             file.SaveAs(sPath + Path.GetFileName(modifiedFileName));
                             upLoadcount++;
                             var entity = db.SanPhams.Find(code);
-                            entity.HinhAnh =  modifiedFileName;
+                            entity.HinhAnh = modifiedFileName;
                         }
                     }
                 }
@@ -220,10 +229,19 @@ namespace ShopAPI.Controllers
             int upLoadcount = 0;
             string sPath = System.Web.Hosting.HostingEnvironment.MapPath("/HinhAnh/");
             System.Web.HttpFileCollection files = System.Web.HttpContext.Current.Request.Files;
-            var entity = db.SanPhams.Find(code);       
-            for (int i = 0; i < files.Count; i++)
+            var entity = db.SanPhams.Find(code);
+            int flag = 0;
+            if (files[files.Count - 1].FileName.EndsWith(".png") || files[files.Count - 1].FileName.EndsWith(".jpeg ") || files[files.Count - 1].FileName.EndsWith(".jpg"))
             {
-                System.Web.HttpPostedFile file = files[i];
+                flag = 0;
+            }
+            else
+            {
+                flag = 1;
+            }
+            if (flag < 1)
+            {
+                System.Web.HttpPostedFile file = files[files.Count - 1];
                 string fileName = new FileInfo(file.FileName).Name;
                 if (file.ContentLength > 0)
                 {
@@ -257,7 +275,7 @@ namespace ShopAPI.Controllers
         public HttpResponseMessage ImageGet(string imageName)
         {
             var resp = Request.CreateResponse(HttpStatusCode.OK);
-            if(!string.IsNullOrEmpty(imageName))
+            if (!string.IsNullOrEmpty(imageName))
             {
                 var path = "~/HinhAnh/" + imageName;
                 path = HostingEnvironment.MapPath(path);
@@ -279,7 +297,10 @@ namespace ShopAPI.Controllers
         {
             SanPham entity = db.SanPhams.Find(id);
             string sPath = System.Web.Hosting.HostingEnvironment.MapPath("/HinhAnh/");
-            File.Delete(sPath + Path.GetFileName(entity.HinhAnh));
+            if(entity.HinhAnh != null)
+            {
+                File.Delete(sPath + Path.GetFileName(entity.HinhAnh));
+            }
             db.SanPhams.Remove(entity);
             db.SaveChanges();
             return Request.CreateResponse(HttpStatusCode.OK, "Xóa Thành Công");
